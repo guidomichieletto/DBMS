@@ -16,6 +16,10 @@ public class Main {
 
         Relation search = rel.selection("nome = antonio");
         System.out.println(search);
+
+        Relation projection = rel.projection(new String[]{"nome", "cognome"});
+        System.out.println(projection);
+
         search.save();
     }
 }

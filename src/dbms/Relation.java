@@ -133,6 +133,14 @@ public class Relation {
             }
         }
 
+        for(String[] row : data) {
+            String[] newRow = new String[fields.length];
+            for(int i = 0; i < fields.length; i++) {
+                newRow[i] = row[indexes[i]];
+            }
+            res.insert(newRow);
+        }
+
         return res;
     }
 
