@@ -4,10 +4,15 @@ import java.io.*;
 import java.util.ArrayList;
 
 public class Relation {
-    private String name;
-    private String[] field_names;
-    private ArrayList<String[]> data;
+    private final String name;
+    private final String[] field_names;
+    private final ArrayList<String[]> data;
 
+    /**
+     * Constructor for a new relation
+     * @param name the name of the relation
+     * @param fs the names of the fields
+     */
     public Relation(String name, String[] fs) {
         this.name = name;
         field_names = new String[fs.length];
@@ -17,14 +22,21 @@ public class Relation {
         data = new ArrayList<>();
     }
 
+    /**
+     * Function to insert a new row in the relation
+     * @param row the row to insert (must have the same number of fields as the relation)
+     */
     public void insert(String[] row) {
         String[] copy = new String[row.length];
         System.arraycopy(row, 0, copy, 0, row.length);
         data.add(copy);
     }
 
+    /**
+     * Function to save the relation to a CSV file
+     */
     public void save() {
-        File file = new File("data/" + name + ".csv");
+        File file = new File(name + ".csv");
 
         try {
             FileWriter fw = new FileWriter(file);
@@ -48,28 +60,66 @@ public class Relation {
             fw.flush();
             fw.close();
         } catch (Exception ex) {
-
+            System.err.println(ex.getMessage());
         }
     }
 
-    public void load() {
-        File file = new File("data/" + name + ".csv");
-        if(!file.exists()) return;
+    /**
+     * Function to load a relation from a CSV file
+     * @param name the name of the relation (without .csv)
+     * @return the loaded relation, or null if any error
+     */
+    public static Relation load(String name) {
+        File file = new File(name + ".csv");
+        if(!file.exists()) return null;
 
         try {
             FileReader fr = new FileReader(file);
             BufferedReader br = new BufferedReader(fr);
 
-            // skip first line
-            br.readLine();
+            // load fields from first line
+            String[] header = br.readLine().split(",");
+            Relation rel = new Relation(name, header);
 
-            String line = br.readLine();
-            while(line != null) {
-                // TODO
+            String line;
+            String[] dataRow;
+            while((line = br.readLine()) != null) {
+                dataRow = line.split(",");
+                rel.data.add(dataRow);
             }
-        } catch (Exception ex) {
 
+            return rel;
+        } catch (Exception ex) {
+            return null;
         }
+    }
+
+    /**
+     * Function to perform a selection on the relation
+     * @param condition expressed as a string of type field = value
+     * @return a new relation with the rows that satisfy the condition
+     */
+    public Relation selection(String condition) {
+        Relation res = new Relation("selection_" + name, field_names);
+
+        String[] expr = condition.replace(" ", "").split("=");
+        String fieldName = expr[0];
+        String value = expr[1];
+
+        int fieldIndex = -1;
+        for (int i = 0; i < field_names.length; i++) {
+            if(field_names[i].equals(fieldName)) {
+                fieldIndex = i;
+                break;
+            }
+        }
+        if(fieldIndex == -1) return null;
+
+        for(String[] row : data) {
+            if(row[fieldIndex].equals(value)) res.insert(row);
+        }
+
+        return res;
     }
 
     @Override
