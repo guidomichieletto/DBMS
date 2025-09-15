@@ -122,6 +122,20 @@ public class Relation {
         return res;
     }
 
+    public Relation projection(String[] fields) {
+        Relation res = new Relation("projection_" + name, fields);
+
+        // getting the indexes
+        int[] indexes = new int[fields.length];
+        for(int i = 0; i < fields.length; i++) {
+            for(int j = 0; j < field_names.length; j++) {
+                if(fields[i].equals(field_names[j])) indexes[i] = j;
+            }
+        }
+
+        return res;
+    }
+
     @Override
     public String toString() {
         String ret = "";
