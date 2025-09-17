@@ -214,6 +214,21 @@ public class Relation {
         return res;
     }
 
+    public Relation difference(Relation r) {
+        Relation res = new Relation("difference_" + name + "_" + r.name, field_names);
+
+        if(this.field_names.length != r.field_names.length) return null;
+        for(int i = 0; i < this.field_names.length; i++) {
+            if(!this.field_names[i].equals(r.field_names[i])) return null;
+        }
+
+        for(String[] row : this.data) {
+            if(!r.duplicated(row)) res.insert(row);
+        }
+
+        return res;
+    }
+
     /**
      * Function to perform a cartesian product between this relation and another one
      * @param r the other relation

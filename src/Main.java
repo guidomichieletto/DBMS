@@ -19,6 +19,7 @@ public class Main {
             doc = new Relation("docente", new String[]{"nome", "cognome", "sesso", "data_nascita"});
             doc.insert(new String[]{"verdi", "luca", "M", "01/01/1980"});
             doc.insert(new String[]{"neri", "anna", "F", "02/02/1985"});
+            doc.insert(new String[]{"maria", "rossi", "F", "05/05/2007"});
             doc.save();
         }
 
@@ -41,6 +42,9 @@ public class Main {
 
         Relation union = rel.union(doc);
         System.out.println(union);
+
+        Relation difference = rel.difference(doc);
+        System.out.println(difference);
 
         search.save();
     }
