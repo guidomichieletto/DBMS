@@ -190,6 +190,31 @@ public class Relation {
     }
 
     /**
+     * Function to perform a union between this relation and another one
+     * The two relations must have the same number of fields and the same field names
+     * @param r the other relation
+     * @return a new relation with the union, or null if the number of fields or their names are different
+     */
+    public Relation union(Relation r) {
+        if(this.field_names.length != r.field_names.length) return null;
+
+        for(int i = 0; i < this.field_names.length; i++) {
+            if(!this.field_names[i].equals(r.field_names[i])) return null;
+        }
+
+        Relation res = new Relation("union_" + name + "_" + r.name, this.field_names);
+
+        for(String[] row : this.data) {
+            res.insert(row);
+        }
+        for(String[] row : r.data) {
+            res.insert(row);
+        }
+
+        return res;
+    }
+
+    /**
      * Function to perform a cartesian product between this relation and another one
      * @param r the other relation
      * @return a new relation with the cartesian product

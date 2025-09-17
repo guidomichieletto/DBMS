@@ -14,6 +14,14 @@ public class Main {
             rel.save();
         }
 
+        Relation doc = Relation.load("docente");
+        if(doc == null) {
+            doc = new Relation("docente", new String[]{"nome", "cognome", "sesso", "data_nascita"});
+            doc.insert(new String[]{"verdi", "luca", "M", "01/01/1980"});
+            doc.insert(new String[]{"neri", "anna", "F", "02/02/1985"});
+            doc.save();
+        }
+
         System.out.println(rel);
 
         Relation search = rel.selection("nome = antonio");
@@ -30,6 +38,9 @@ public class Main {
 
         Relation join = rel.join(projection.rename(new String[]{"nome1", "congome1"}), "nome = nome1");
         System.out.println(join);
+
+        Relation union = rel.union(doc);
+        System.out.println(union);
 
         search.save();
     }
