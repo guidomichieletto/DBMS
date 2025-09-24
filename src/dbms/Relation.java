@@ -118,27 +118,45 @@ public class Relation {
 
     /**
      * Function to perform a selection on the relation
-     * @param condition expressed as a string of type field = value
+     * @param condition expressed as a string of type field [=,<>] 'value' or field [=,<>] field
      * @return a new relation with the rows that satisfy the condition
      */
     public Relation selection(String condition) {
         Relation res = new Relation("selection_" + name, field_names);
 
-        String[] expr = condition.replace(" ", "").split("=");
-        String fieldName = expr[0];
-        String value = expr[1];
+        // getting operator
+        int op = -1; // 0 = "=", 1 = "<>"
+        if(condition.contains("=")) op = 0;
+        else if(condition.contains("<>")) op = 1;
+        if(op == -1) return null;
 
-        int fieldIndex = -1;
-        for (int i = 0; i < field_names.length; i++) {
-            if(field_names[i].equals(fieldName)) {
-                fieldIndex = i;
-                break;
+        // getting the fields or value
+        String[] expr = condition.replace(" ", "").split(op == 0 ? "=" : "<>");
+        String field1 = expr[0];
+        String field2 = expr[1];
+
+        // determine value or field
+        int type = -1; // 0 = value, 1 = field
+        if(field2.charAt(0) == '\'') type = 0; else type = 1;
+
+        // getting index for fields
+        int field1Index = getFieldIndex(field1);
+        int field2Index = -1;
+        if(type == 1) field2Index = getFieldIndex(field2);
+
+
+        // search field [=,<>] value
+        if(type == 0) {
+            for(String[] row : data) {
+                if(row[field1Index].equals(field2.replace("'", ""))) res.insert(row);
             }
         }
-        if(fieldIndex == -1) return null;
 
-        for(String[] row : data) {
-            if(row[fieldIndex].equals(value)) res.insert(row);
+        // search field [=,<>] field
+        if(type == 1) {
+            for(String[] row : data) {
+                if(row[field1Index].equals(row[field2Index])) res.insert(row);
+            }
         }
 
         return res;
@@ -267,19 +285,7 @@ public class Relation {
         if(field1.equals(field2)) return null;
 
         // getting the indexes
-        int index1 = -1, index2 = -1;
-        for(int i = 0; i < this.field_names.length; i++) {
-            if(this.field_names[i].equals(field1)) {
-                index1 = i;
-                break;
-            }
-        }
-        for(int i = 0; i < r.field_names.length; i++) {
-            if(r.field_names[i].equals(field2)) {
-                index2 = i;
-                break;
-            }
-        }
+        int index1 = getFieldIndex(field1), index2 = r.getFieldIndex(field2);
 
         Relation res = createXBase(r);
 
@@ -308,6 +314,18 @@ public class Relation {
         System.arraycopy(r.field_names, 0, newFields, this.field_names.length, r.field_names.length);
 
         return new Relation("xprod_" + name + "_" + r.name, newFields);
+    }
+
+    private int getFieldIndex(String name) {
+        int fieldIndex = -1;
+        for (int i = 0; i < field_names.length; i++) {
+            if(field_names[i].equals(name)) {
+                fieldIndex = i;
+                break;
+            }
+        }
+
+        return fieldIndex;
     }
 
     private static void insertXData(Relation res, String[] data1, String[] data2) {
