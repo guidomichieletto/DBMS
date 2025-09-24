@@ -23,29 +23,12 @@ public class Main {
             doc.save();
         }
 
+        Relation classi = Relation.load("classe");
+        if(classi == null) return;
+
         System.out.println(rel);
 
-        Relation search = rel.selection("nome = 'antonio'");
-        System.out.println(search);
-
-        Relation projection = rel.projection(new String[]{"nome", "cognome"});
-        System.out.println(projection);
-
-        Relation redenomination = rel.rename(new String[]{"nome1", "cognome1", "sesso1", "dn"});
-        System.out.println(redenomination);
-
-        Relation cartesian = rel.xproduct(projection);
-        System.out.println(cartesian);
-
-        Relation join = rel.join(projection.rename(new String[]{"nome1", "congome1"}), "nome = nome1");
+        Relation join = rel.join(classi, "classe = classe");
         System.out.println(join);
-
-        Relation union = rel.union(doc);
-        System.out.println(union);
-
-        Relation difference = rel.difference(doc);
-        System.out.println(difference);
-
-        search.save();
     }
 }

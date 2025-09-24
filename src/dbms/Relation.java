@@ -268,33 +268,47 @@ public class Relation {
     /**
      * Function to perform a join between this relation and another one
      * @param r the other relation
-     * @param condition expressed as a string of type field1 [=,<>] field2
+     * @param condition expressed as a string of type field1 [=,<>] field2 AND field3 [=,<>] field4 ...
      * @return a new relation with the join, or null if any error
      */
     public Relation join(Relation r, String condition) {
-        // read the condition field1 [=,<>] field2
-        int op = -1; // 0 = "=", 1 = "<>"
-        if(condition.contains("=")) op = 0;
-        else if(condition.contains("<>")) op = 1;
-        if(op == -1) return null;
+        // getting multiple conditions
+        String[] conditionsStr = condition.replace(" ", "").split("AND");
+        Condition[] conditions = new Condition[conditionsStr.length];
+        for(int i = 0; i < conditionsStr.length; i++) {
+            conditions[i] = Condition.evaluate(conditionsStr[i]);
+            if(conditions[i] == null) return null;
+        }
 
-        // getting the fields
-        String[] expr = condition.replace(" ", "").split(op == 0 ? "=" : "<>");
-        String field1 = expr[0];
-        String field2 = expr[1];
-        if(field1.equals(field2)) return null;
-
-        // getting the indexes
-        int index1 = getFieldIndex(field1), index2 = r.getFieldIndex(field2);
+        // getting conditions indexes
+        int[][] condIndexes = new int[conditions.length][2];
+        for(int i = 0; i < conditions.length; i++) {
+            condIndexes[i][0] = getFieldIndex(conditions[i].getField());
+            condIndexes[i][1] = r.getFieldIndex(conditions[i].getValue());
+            if(condIndexes[i][0] == -1 || condIndexes[i][1] == -1) return null;
+        }
 
         Relation res = createXBase(r);
 
         for(String[] data1 : this.data) {
             for(String[] data2 : r.data) {
-                if((op == 0 && data1[index1].equals(data2[index2])) ||
-                   (op == 1 && !data1[index1].equals(data2[index2]))) {
-                    Relation.insertXData(res, data1, data2);
+                boolean valid = true;
+
+                for (int i = 0; i < conditions.length; i++) {
+                    if(conditions[i].getOperator() == Condition.Operator.EQUAL) {
+                        if(!data1[condIndexes[i][0]].equals(data2[condIndexes[i][1]])) {
+                            valid = false;
+                            break;
+                        }
+                    } else if(conditions[i].getOperator() == Condition.Operator.NOT_EQUAL) {
+                        if(data1[condIndexes[i][0]].equals(data2[condIndexes[i][1]])) {
+                            valid = false;
+                            break;
+                        }
+                    }
                 }
+
+                if(valid) insertXData(res, data1, data2);
             }
         }
 
@@ -316,6 +330,11 @@ public class Relation {
         return new Relation("xprod_" + name + "_" + r.name, newFields);
     }
 
+    /**
+     * Function to get the index of a field by its name
+     * @param name the name of the field
+     * @return the index of the field, or -1 if not found
+     */
     private int getFieldIndex(String name) {
         int fieldIndex = -1;
         for (int i = 0; i < field_names.length; i++) {
