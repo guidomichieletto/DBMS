@@ -315,6 +315,31 @@ public class Relation {
         return res;
     }
 
+    /*
+     * Function to perform a natural join between this relation and another one
+     */
+    public Relation naturalJoin(Relation r) {
+        // getting common fields
+        ArrayList<String> commonFields = new ArrayList<>();
+        for(String f1 : this.field_names) {
+            for(String f2 : r.field_names) {
+                if(f1.equals(f2)) {
+                    commonFields.add(f1);
+                    break;
+                }
+            }
+        }
+
+        // creating conditions
+        StringBuilder condition = new StringBuilder();
+        for(int i = 0; i < commonFields.size(); i++) {
+            condition.append(commonFields.get(i)).append("=").append(commonFields.get(i));
+            if(i != commonFields.size() - 1) condition.append(" AND ");
+        }
+
+        return join(r, condition.toString());
+    }
+
     /**
      * Function to create the base of a cartesian product or join relation
      * @param r the other relation
