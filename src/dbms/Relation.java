@@ -315,7 +315,7 @@ public class Relation {
         return res;
     }
 
-    /*
+    /**
      * Function to perform a natural join between this relation and another one
      */
     public Relation naturalJoin(Relation r) {
