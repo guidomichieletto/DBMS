@@ -25,11 +25,21 @@ public class Relation {
     /**
      * Function to insert a new row in the relation (if not already present)
      * @param row the row to insert (must have the same number of fields as the relation)
+     * @throws Exception if the number of fields is different
      */
-    public void insert(String[] row) {
-        if(row.length != field_names.length) return;
-        if(duplicated(row)) return;
+    public void insert(String[] row) throws Exception {
+        if(row.length != field_names.length) throw new Exception("insert: mismatched number of fields, expected " + field_names.length + " got " + row.length);
+        if(duplicated(row)) throw new Exception("insert: trying to insert duplicated row");
 
+        insertNoCheck(row);
+    }
+
+    /**
+     * Function to insert a new row in the relation without checking for duplicates
+     * Used internally for operations that guarantee no duplicates
+     * @param row the row to insert (must have the same number of fields as the relation)
+     */
+    private void insertNoCheck(String[] row) {
         String[] copy = new String[row.length];
         System.arraycopy(row, 0, copy, 0, row.length);
         data.add(copy);
@@ -148,14 +158,14 @@ public class Relation {
         // search field [=,<>] value
         if(type == 0) {
             for(String[] row : data) {
-                if(row[field1Index].equals(field2.replace("'", ""))) res.insert(row);
+                if(row[field1Index].equals(field2.replace("'", ""))) res.insertNoCheck(row);
             }
         }
 
         // search field [=,<>] field
         if(type == 1) {
             for(String[] row : data) {
-                if(row[field1Index].equals(row[field2Index])) res.insert(row);
+                if(row[field1Index].equals(row[field2Index])) res.insertNoCheck(row);
             }
         }
 
@@ -183,7 +193,7 @@ public class Relation {
             for(int i = 0; i < fields.length; i++) {
                 newRow[i] = row[indexes[i]];
             }
-            res.insert(newRow);
+            res.insertNoCheck(newRow);
         }
 
         return res;
@@ -213,20 +223,20 @@ public class Relation {
      * @param r the other relation
      * @return a new relation with the union, or null if the number of fields or their names are different
      */
-    public Relation union(Relation r) {
-        if(this.field_names.length != r.field_names.length) return null;
+    public Relation union(Relation r) throws Exception {
+        if(this.field_names.length != r.field_names.length) throw new Exception("union: mismatched number of fields");
 
         for(int i = 0; i < this.field_names.length; i++) {
-            if(!this.field_names[i].equals(r.field_names[i])) return null;
+            if(!this.field_names[i].equals(r.field_names[i])) throw new Exception("union: mismatched field names");
         }
 
         Relation res = new Relation("union_" + name + "_" + r.name, this.field_names);
 
         for(String[] row : this.data) {
-            res.insert(row);
+            res.insertNoCheck(row);
         }
         for(String[] row : r.data) {
-            res.insert(row);
+            res.insertNoCheck(row);
         }
 
         return res;
@@ -241,7 +251,7 @@ public class Relation {
         }
 
         for(String[] row : this.data) {
-            if(!r.duplicated(row)) res.insert(row);
+            if(!r.duplicated(row)) res.insertNoCheck(row);
         }
 
         return res;
@@ -376,7 +386,7 @@ public class Relation {
         String[] newRow = new String[res.field_names.length];
         System.arraycopy(data1, 0, newRow, 0, data1.length);
         System.arraycopy(data2, 0, newRow, data1.length, data2.length);
-        res.insert(newRow);
+        res.data.add(newRow);
     }
 
     @Override

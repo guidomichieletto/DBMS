@@ -1,15 +1,6 @@
 package dbms.commands;
 
-import dbms.Relation;
-
 public abstract class Command {
-
-    public enum Type {
-        SELECT, INSERT
-    }
-
-    private Type type;
-
     protected Command() {}
 
     public static Command parse(String command) throws Exception {

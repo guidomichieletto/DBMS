@@ -9,8 +9,7 @@ public class Main {
             System.out.print("Sql> ");
             String command = kbd.nextLine();
             try {
-                Command cmd = Command.parse(command);
-                System.out.println(cmd.execute());
+                System.out.println(Command.parse(command).execute());
             } catch (Exception ex) {
                 System.out.println(ex.getMessage());
             }

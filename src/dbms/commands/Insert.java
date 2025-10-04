@@ -30,8 +30,12 @@ public class Insert extends Command {
     public String execute() {
         String[] values = this.values.toArray(new String[]{});
 
-        relation.insert(values);
-        relation.save();
+        try {
+            relation.insert(values);
+            relation.save();
+        } catch (Exception e) {
+            return e.getMessage();
+        }
 
         return "INSERT OK";
     }
