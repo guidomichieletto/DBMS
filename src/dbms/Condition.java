@@ -24,11 +24,11 @@ public class Condition {
         return value;
     }
 
-    public boolean isValueIsField() {
+    public boolean valueIsField() {
         return valueIsField;
     }
 
-    public static Condition evaluate(String condition) {
+    public static Condition evaluate(String condition) throws Exception {
         Condition conditionObj = new Condition();
 
         if(condition.contains("=")) conditionObj.operator = Operator.EQUAL;
@@ -37,11 +37,16 @@ public class Condition {
 
         String operatorStr = (conditionObj.operator == Operator.EQUAL ? "=" : "<>");
 
-        String[] expr = condition.replace(" ", "").split(operatorStr);
+        String[] expr = condition.split(operatorStr);
         conditionObj.field = expr[0];
-        conditionObj.value = expr[1];
 
-        if(expr[1].charAt(0) != '\'') conditionObj.valueIsField = true;
+        if(expr[1].contains("'")) {
+            conditionObj.value = Utils.getValueFromString(expr[1]);
+            if(conditionObj.value == null) throw new Exception("condition: Invalid string value " + expr[1]);
+            conditionObj.valueIsField = true;
+        } else {
+            conditionObj.value = expr[1];
+        }
 
         return conditionObj;
     }

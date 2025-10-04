@@ -4,6 +4,8 @@ import java.io.*;
 import java.util.ArrayList;
 
 public class Relation {
+    private static final String DATA_DIR = "data/";
+
     private final String name;
     private final String[] field_names;
     private final ArrayList<String[]> data;
@@ -68,7 +70,7 @@ public class Relation {
      * Function to save the relation to a CSV file
      */
     public void save() {
-        File file = new File(name + ".csv");
+        File file = new File(DATA_DIR + name + ".csv");
 
         try {
             FileWriter fw = new FileWriter(file);
@@ -102,7 +104,7 @@ public class Relation {
      * @return the loaded relation, or null if any error
      */
     public static Relation load(String name) {
-        File file = new File(name + ".csv");
+        File file = new File(DATA_DIR + name + ".csv");
         if(!file.exists()) return null;
 
         try {
@@ -119,6 +121,9 @@ public class Relation {
                 dataRow = line.split(",");
                 rel.data.add(dataRow);
             }
+
+            br.close();
+            fr.close();
 
             return rel;
         } catch (Exception ex) {
@@ -281,13 +286,14 @@ public class Relation {
      * @param condition expressed as a string of type field1 [=,<>] field2 AND field3 [=,<>] field4 ...
      * @return a new relation with the join, or null if any error
      */
-    public Relation join(Relation r, String condition) {
+    public Relation join(Relation r, String condition) throws Exception {
         // getting multiple conditions
         String[] conditionsStr = condition.replace(" ", "").split("AND");
         Condition[] conditions = new Condition[conditionsStr.length];
         for(int i = 0; i < conditionsStr.length; i++) {
             conditions[i] = Condition.evaluate(conditionsStr[i]);
-            if(conditions[i] == null) return null;
+            if(conditions[i] == null) throw new Exception("join: invalid condition syntax");
+            if(conditions[i].valueIsField()) throw new Exception("join: in join conditions you cannot compare fields with values");
         }
 
         // getting conditions indexes
@@ -328,7 +334,7 @@ public class Relation {
     /**
      * Function to perform a natural join between this relation and another one
      */
-    public Relation naturalJoin(Relation r) {
+    public Relation naturalJoin(Relation r) throws Exception {
         // getting common fields
         ArrayList<String> commonFields = new ArrayList<>();
         for(String f1 : this.field_names) {

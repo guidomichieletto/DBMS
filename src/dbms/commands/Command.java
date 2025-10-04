@@ -12,5 +12,5 @@ public abstract class Command {
         throw new Exception("Unknown command: " + tokens[0]);
     }
 
-    public String execute() { return "NO RESULT DEFINED"; }
+    public String execute() throws Exception { return "NO RESULT DEFINED"; }
 }
